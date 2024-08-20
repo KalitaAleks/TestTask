@@ -14,7 +14,7 @@ App.Run(async (context) =>
     var response = context.Response;
     var request = context.Request;
     var path = request.Path;
-    string expressionForGuidErrors = @"^/api/errors/\w{}$";
+    string expressionForGuidErrors = @"^/api/errors/\d{1,6}$";
     string expressionForValue = @"^/api/filenames/\w{1}$";
 
     if (path == "/api/allData" && request.Method == "GET")
@@ -155,8 +155,8 @@ async Task CreateNewData(HttpResponse response, HttpRequest request)
         string Date = DateTime.Now.ToString().Replace(" ", "_").Replace(".", "-").Replace(":", "-");
         JsonData? RestoreData = new();
         RestoreData = JsonSerializer.Deserialize<JsonData>(newData!);
-        File.WriteAllText(Date + ".json", newData);
-        await response.SendFileAsync(Date + ".json");
+        File.WriteAllText("log/"+Date + ".json", newData);
+        await response.SendFileAsync("log/"+Date + ".json");
     }
     catch (Exception)
     {
