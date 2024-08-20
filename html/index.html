@@ -263,11 +263,11 @@
             if (boolValue.checked===false )
             {
                 
-                getAllFilenames(1);
+                getAllFilenames(true);
             }
             else 
             {
-                getAllFilenames(0);
+                getAllFilenames(false);
             }
         });
         document.getElementById("GetServiceInfo").addEventListener("click", async () => GetServiceInfo());

@@ -15,7 +15,7 @@ App.Run(async (context) =>
     var request = context.Request;
     var path = request.Path;
     string expressionForGuidErrors = @"^/api/errors/\d{1,6}$";
-    string expressionForValue = @"^/api/filenames/\w{1}$";
+    string expressionForValue = @"^/api/filenames/\w{4,5}$";
 
     if (path == "/api/allData" && request.Method == "GET")
     {
@@ -28,7 +28,7 @@ App.Run(async (context) =>
     else if (Regex.IsMatch(path, expressionForValue) && request.Method == "GET")
     {
 
-        bool value = Convert.ToBoolean(Convert.ToInt32(path.Value?.Split("/")[3]));
+        bool value = Convert.ToBoolean(path.Value?.Split("/")[3]);
         await GetFilenames(value, response);
     }
     else if (path == "/api/errors" && request.Method == "GET")
