@@ -1,9 +1,12 @@
-﻿public class NodeFiles
+﻿namespace TestTask.Objects
 {
-    public string? FileName { get; set; }
-    public bool Result { get; set; }
-    public List<ErrorInFile> Errors { get; set; } = new();
-    public string? Scantime { get; set; }
+    public class NodeFiles
+    {
+        public string? FileName { get; set; }
+        public bool Result { get; set; }
+        public List<ErrorInFile> Errors { get; set; } = new();
+        public string? Scantime { get; set; }
+    }
 }
 
 

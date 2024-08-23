@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="html\index.html" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Program.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
@@ -18,6 +14,12 @@
 
   <ItemGroup>
     <Folder Include="log\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="data.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

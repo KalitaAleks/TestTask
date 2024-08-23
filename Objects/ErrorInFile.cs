@@ -1,8 +1,11 @@
-﻿public class ErrorInFile
+﻿namespace TestTask.Objects
 {
-    public string? Module { get; set; }
-    public int ErorCode { get; set; }
-    public string ErrorDescription { get; set; } = "";
+    public class ErrorInFile
+    {
+        public string? Module { get; set; }
+        public int ECode { get; set; }
+        public string? Error { get; set; }
+    }
 }
 
 

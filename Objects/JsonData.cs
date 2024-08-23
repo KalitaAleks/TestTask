@@ -1,7 +1,10 @@
-﻿public class JsonData
+﻿namespace TestTask.Objects
 {
-    public NodeScan? Scan { get; set; } = new();
-    public List<NodeFiles>? Files { get; set; } = new();
+    public class JsonData
+    {
+        public NodeScan? Scan { get; set; } = new();
+        public List<NodeFiles>? Files { get; set; } = new();
+    }
 }
 
 
