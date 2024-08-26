@@ -18,7 +18,7 @@ namespace TestTask.Controllers
             WriteIndented = true,                // отступы для красоты
         };
 
-        static JsonData? GetData()
+        private static JsonData? GetData()
         {
             FileStream fs = new("data.json", FileMode.OpenOrCreate);
             JsonData? data = JsonSerializer.Deserialize<JsonData>(fs, JsonOptions);
@@ -26,28 +26,29 @@ namespace TestTask.Controllers
             return data;
         }
 
+        private static readonly JsonData? data = GetData();
+
         public IActionResult Index()
         {
             return new HtmlResult();
         }
 
-        [Route("AllData"), HttpGet]
+        [HttpGet("data/all")]
         public IActionResult GetAllData()
         {
-            return Json(GetData(), JsonOptions);
+            return Json(data, JsonOptions);
         }
 
-        [Route("Scan"), HttpGet]
+        [HttpGet("scan")]
         public IActionResult GetScan()
         {
-            JsonData? data = GetData();
             return Json(data!.Scan, JsonOptions);
         }
 
-        [Route("filenames"), HttpGet]
+        [HttpGet("filenames")]
         public IActionResult GetFilenames(bool correct)
         {
-            JsonData? data = GetData();
+           
             List<string> FilesNames = new();
             foreach (var xfile in data!.Files!)
             {
@@ -61,10 +62,9 @@ namespace TestTask.Controllers
             return Json(FilesNames, JsonOptions);
         }
 
-        [Route("errors/{index?}"), HttpGet]
+        [HttpGet("errors/{index?}")]
         public IActionResult Errors(int? index)
         {
-            JsonData? data = GetData();
             List<BrokenFile> Errors = new();
             foreach (var xfile in data!.Files!)
             {
@@ -93,17 +93,15 @@ namespace TestTask.Controllers
             }
         }
 
-        [Route("errors/count"), HttpGet]
+        [HttpGet("errors/count")]
         public int ErrorsCount() 
         { 
-            JsonData? data = GetData();
             return data!.Scan!.ErrorCount;
         }
 
-        [Route("query/check"), HttpGet]
+        [HttpGet("query/check")]
         public IActionResult Query()
         {
-            JsonData? data = GetData();
             FileQuery queries = new();
             foreach (var xfile in data!.Files!)
             {
@@ -123,7 +121,7 @@ namespace TestTask.Controllers
             return Json(queries, JsonOptions);
         }
 
-        [Route("service/serviceInfo"), HttpGet]
+        [HttpGet("service/serviceInfo")]
         public IActionResult ServiceInfo()
         {
             ServiceInfo serviceInfo = new()
@@ -135,7 +133,7 @@ namespace TestTask.Controllers
             return Json(serviceInfo, JsonOptions);
         }
 
-        [Route("newErrors"), HttpPost]
+        [HttpPost("errors")]
         public IActionResult CreateNewData([FromBody] string newData)
         {
             try
@@ -146,6 +144,16 @@ namespace TestTask.Controllers
                 FileStream fs = new("log/" + Date + ".json", FileMode.OpenOrCreate);
                 JsonSerializer.Serialize(fs, RestoreData, JsonOptions);
                 fs.Close();
+
+                foreach (var xfile in RestoreData!.Files!)
+                { 
+                  data!.Files!.Add(xfile);
+                }
+                data!.Scan!.ErrorCount += RestoreData!.Scan!.ErrorCount;
+                fs = new("data.json", FileMode.OpenOrCreate);
+                JsonSerializer.Serialize(fs, data, JsonOptions);
+                fs.Close();
+
                 return Json(RestoreData, JsonOptions);
             }
             catch (Exception)

@@ -65,7 +65,7 @@ namespace TestTask.Objects
                 // Получение всех данных
                     async function getAllData() {{
                         // отправляет запрос и получаем ответ
-                        const response = await fetch(""/api/allData"", {{
+                        const response = await fetch(""/api/data/all"", {{
                             method: ""GET"",
                             headers: {{ ""Accept"": ""application/json"" }}
                         }});
@@ -85,7 +85,7 @@ namespace TestTask.Objects
                     }}
                     async function getScan() {{
                             // отправляет запрос и получаем ответ
-                        const response = await fetch(""/api/Scan"", {{
+                        const response = await fetch(""/api/scan"", {{
                                 method: ""GET"",
                                 headers: {{ ""Accept"": ""application/json"" }}
                             }});
@@ -206,7 +206,7 @@ namespace TestTask.Objects
 
                     async function CreateNewData(Json) {{
                         // отправляет запрос и получаем ответ
-                        const response = await fetch(""/api/newErrors"", {{
+                        const response = await fetch(""/api/errors"", {{
                             method: ""POST"",
                             headers: {{ ""Accept"": ""application/json"", ""Content-Type"": ""application/json"" }},
                             body: JSON.stringify(Json)
