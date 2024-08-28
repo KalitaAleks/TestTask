@@ -7,6 +7,13 @@
 	<StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
+	  <ItemGroup>
+    <Content Remove="wwwroot\data.json" />
+  </ItemGroup>
+	<ItemGroup>
+		<Content Remove="wwwroot\data.json" />
+	</ItemGroup>
+
   <ItemGroup>
     <Compile Update="Program.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -18,9 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="data.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
 

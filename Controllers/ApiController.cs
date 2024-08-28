@@ -1,164 +1,122 @@
-﻿using Microsoft.AspNetCore.Http.Json;
-using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Text;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Unicode;
 using TestTask.Objects;
+using TestTask.Services.Interfaces;
 
 namespace TestTask.Controllers
 {
-    [Route("/{api?}")]
+    [Route("api")]
+    [ApiController]
     public class ApiController : Controller
     {
-        private static JsonSerializerOptions JsonOptions{ get; } = new JsonSerializerOptions
+
+
+        JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true, // не учитываем регистр
             WriteIndented = true,                // отступы для красоты
         };
 
-        private static JsonData? GetData()
+        private readonly IScannedDataService _scanInfoService;
+
+        public ApiController(IScannedDataService scanInfoService)
         {
-            FileStream fs = new("data.json", FileMode.OpenOrCreate);
-            JsonData? data = JsonSerializer.Deserialize<JsonData>(fs, JsonOptions);
-            fs.Close();
-            return data;
+            _scanInfoService = scanInfoService;
+
         }
 
-        private static readonly JsonData? data = GetData();
-
-        public IActionResult Index()
-        {
-            return new HtmlResult();
-        }
-
+        /// <summary>
+        /// Получает все данные из файла data.json
+        /// </summary>
         [HttpGet("data/all")]
-        public IActionResult GetAllData()
+        public IActionResult AllData()
         {
-            return Json(data, JsonOptions);
+            return Json(_scanInfoService.AllData(), JsonOptions);
         }
 
+        /// <summary>
+        /// Получает данные об объекте сканирования: время сканирования, бд, сервер, количество ошибок
+        /// </summary>
         [HttpGet("scan")]
-        public IActionResult GetScan()
+        public IActionResult Scan()
         {
-            return Json(data!.Scan, JsonOptions);
+            return Ok(_scanInfoService.Scan());
         }
 
+        /// <summary>
+        /// Получает список имен файлов, у которых свойство result = correct.
+        /// </summary>
         [HttpGet("filenames")]
-        public IActionResult GetFilenames(bool correct)
+        public IActionResult Filenames(bool correct)
         {
-           
-            List<string> FilesNames = new();
-            foreach (var xfile in data!.Files!)
-            {
-                string filename = $"FileName: {xfile.FileName}";
-                bool result = xfile.Result;
-                if (result == correct)
-                {
-                    FilesNames.Add(filename);
-                }
-            }
-            return Json(FilesNames, JsonOptions);
+            return Ok(_scanInfoService.Filenames(correct));
         }
 
-        [HttpGet("errors/{index?}")]
-        public IActionResult Errors(int? index)
+        /// <summary>
+        /// Получает список файлов с ошибками или один файл по его номеру в списке
+        /// </summary>
+        [HttpGet("errors")]
+        public IActionResult Errors()
         {
-            List<BrokenFile> Errors = new();
-            foreach (var xfile in data!.Files!)
-            {
-                string xfilename = $"FileName: {xfile.FileName}";
-                if (xfile.Result == false)
-                {
-                    BrokenFile eFile = new()
-                    {
-                        Filename = xfilename
-                    };
-                    foreach (var xError in xfile.Errors)
-                    {
-                        eFile.Errors.Add(xError.Error);
-                    }
-                    Errors.Add(eFile);
-                }
-            }
-            try
-            {
-                if (index.HasValue) { return Json(Errors[index.Value], JsonOptions); }
-                else { return Json(Errors, JsonOptions); }
-            }
-            catch
-            {
-                return new BadRequestObjectResult(new { message = "incorrect data" });
-            }
+            return Ok(_scanInfoService.Errors());
         }
 
+        /// <summary>
+        /// Получает один файл из списка файлов с ошибками по его номеру в списке
+        /// </summary>
+        [HttpGet("errors/{index}")]
+        public IActionResult Errors(int index)
+        {
+            return Ok(_scanInfoService.Errors()[index]); 
+
+        }
+
+        /// <summary>
+        /// Получает количество файлов с ошибками
+        /// </summary>
         [HttpGet("errors/count")]
-        public int ErrorsCount() 
-        { 
-            return data!.Scan!.ErrorCount;
+        public IActionResult ErrorsCount() 
+        {
+            return Ok(_scanInfoService.Scan()?.ErrorCount);
         }
 
+        /// <summary>
+        /// Получает статистику по файлам query_%
+        /// </summary>
         [HttpGet("query/check")]
         public IActionResult Query()
         {
-            FileQuery queries = new();
-            foreach (var xfile in data!.Files!)
-            {
-                string filename = $"{xfile.FileName}";
-                if (filename.Contains("query", StringComparison.CurrentCulture))
-                {
-                    bool result = xfile.Result;
-                    if (result == false)
-                    {
-                        queries.Filenames.Add(filename);
-                        queries.Errors++;
-                    }
-                    else { queries.Correct++; }
-                    queries.Total++;
-                }
-            }
-            return Json(queries, JsonOptions);
+            return Ok(_scanInfoService.Query());
         }
 
-        [HttpGet("service/serviceInfo")]
-        public IActionResult ServiceInfo()
-        {
-            ServiceInfo serviceInfo = new()
-            {
-                SeviceAppName = System.Reflection.Assembly.GetEntryAssembly()!.GetName().Name,
-                SeviceVersion = System.Reflection.Assembly.GetEntryAssembly()!.GetName().Version!.ToString(),
-                SeviceDateUtc = DateTime.Now.ToUniversalTime()
-            };
-            return Json(serviceInfo, JsonOptions);
-        }
 
+        /// <summary>
+        /// Отправка новых данных на сервер и запись их в файл
+        /// </summary>
         [HttpPost("errors")]
-        public IActionResult CreateNewData([FromBody] string newData)
+        public IActionResult Errors([FromBody] JsonData newData)
         {
             try
             {
                 string Date = DateTime.Now.ToString().Replace(" ", "_").Replace(".", "-").Replace(":", "-");
-                JsonData? RestoreData = new();
-                RestoreData = JsonSerializer.Deserialize<JsonData>(newData, JsonOptions);
                 FileStream fs = new("log/" + Date + ".json", FileMode.OpenOrCreate);
-                JsonSerializer.Serialize(fs, RestoreData, JsonOptions);
+                JsonSerializer.Serialize(fs, newData, JsonOptions);
                 fs.Close();
-
-                foreach (var xfile in RestoreData!.Files!)
-                { 
-                  data!.Files!.Add(xfile);
+                JsonData? data = _scanInfoService.AllData();
+                foreach (var xfile in newData!.Files!)
+                {
+                    data!.Files!.Add(xfile);
                 }
-                data!.Scan!.ErrorCount += RestoreData!.Scan!.ErrorCount;
+                data!.Scan!.ErrorCount += newData!.Scan!.ErrorCount;
                 fs = new("data.json", FileMode.OpenOrCreate);
                 JsonSerializer.Serialize(fs, data, JsonOptions);
                 fs.Close();
 
-                return Json(RestoreData, JsonOptions);
+                return Ok(newData);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new BadRequestObjectResult(new { message = "incorrect data" });
+                return new BadRequestObjectResult(new { message = "incorrect data: " + ex.Message });
             }
 
         }
