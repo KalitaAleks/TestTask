@@ -9,21 +9,18 @@ namespace TestTask.Controllers
     [ApiController]
     public class ApiController : Controller
     {
-
-
-        JsonSerializerOptions JsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true, // не учитываем регистр
-            WriteIndented = true,                // отступы для красоты
-        };
-
         private readonly IScannedDataService _scanInfoService;
-
         public ApiController(IScannedDataService scanInfoService)
         {
             _scanInfoService = scanInfoService;
 
         }
+
+        private readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true, // не учитываем регистр
+            WriteIndented = true,                // отступы для красоты
+        };
 
         /// <summary>
         /// Получает все данные из файла data.json
@@ -88,7 +85,6 @@ namespace TestTask.Controllers
         {
             return Ok(_scanInfoService.Query());
         }
-
 
         /// <summary>
         /// Отправка новых данных на сервер и запись их в файл
