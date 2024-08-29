@@ -7,13 +7,6 @@
 	<StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
-	  <ItemGroup>
-    <Content Remove="wwwroot\data.json" />
-  </ItemGroup>
-	<ItemGroup>
-		<Content Remove="wwwroot\data.json" />
-	</ItemGroup>
-
   <ItemGroup>
     <Compile Update="Program.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
